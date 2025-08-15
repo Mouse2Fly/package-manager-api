@@ -1,0 +1,21 @@
+﻿@package manager api_HostAddress = http://localhost:5009
+
+POST http://localhost:5009/todoitems
+Content-Type: application/json
+
+{
+  "Id": 1235,
+  "Name": "testing",
+  "CurrentStatus": ["Closed", "2025-10-10"]
+}
+
+###
+
+@id=1234
+GET http://localhost:5009/package/{{id}}
+
+###
+
+GET http://localhost:5009/package
+
+###
