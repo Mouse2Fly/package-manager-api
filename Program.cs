@@ -1,9 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+using PackageModels;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<PackageDB>(opt => opt.UseInMemoryDatabase("PackageDB"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder => 
+        {
+            builder.WithOrigins("http://localhost:5173");
+        });
+});
+
 var app = builder.Build();
+
+app.UseCors();
 
 try
 {
@@ -24,30 +37,97 @@ catch (Exception ex)
 
 app.MapGet("/package/{id}", async (int id, PackageDB db) =>
     await db.Packages.FindAsync(id)
-        is PackageTest package
-            ? Results.Ok(package)
-            : Results.NotFound());
+        is Package packageBox
+            ? Results.Ok(packageBox)
+            : Results.NotFound("Not Found"));
 
-app.MapPost("/package", async (PackageTest package, PackageDB db) =>
+app.MapPost("/package", async (PackagePartial packageData, PackageDB db) =>
 {
-    db.Packages.Add(package);
+    bool confirmed = false;
+    int trackingNumber = 0;
+
+    while (!confirmed)
+    {
+        Random random = new Random();
+        trackingNumber = random.Next(100000, 999999);
+        if (await db.Packages.FindAsync(trackingNumber) is null)
+        {
+            confirmed = true;
+        }
+    }
+
+    Package packageBox = new Package
+    {
+        TrackingNumber = trackingNumber,
+        SenderAdress = packageData.SenderAdress,
+        SenderName = packageData.SenderName,
+        SenderPhone = packageData.SenderPhone,
+        RecipientAdress = packageData.RecipientAdress,
+        RecipientName = packageData.RecipientName,
+        RecipientPhone = packageData.RecipientPhone,
+        CurrentStatus = new[] { "Created", DateTime.Now.ToString() },
+        CreationDate = DateTime.Now,
+        StatusHistory = new[] { "Created", DateTime.Now.ToString() }
+    };
+
+    db.Packages.Add(packageBox);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/package/{package.Id}", package);
+    return Results.Created($"/package/{packageBox.TrackingNumber}", packageBox);
 });
 
-app.MapPut("/package/{id}", async (int id, PackageTest inputPackage, PackageDB db) =>
+app.MapPut("/package/status/{id}", async (int id, PackageStatus inputStatus, PackageDB db) =>
 {
-    var package = await db.Packages.FindAsync(id);
+    var existingPpackage = await db.Packages.FindAsync(id);
 
-    if (package is null) return Results.NotFound();
+    if (existingPpackage is null) return Results.NotFound();
 
-    package.Name = inputPackage.Name;
-    //package.IsComplete = inputPackage.IsComplete;
+    var Statuses = new[] { "Created", "Sent", "Returned", "Accepted", "Canceled" };
+    //Legal actions:
+    //Created -> Sent, Canceled / 1, 4
+    //Sent -> Accepted, Returned, Canceled / 2, 3, 4
+    //Returned -> Sent, Canceled / 1, 4
+    //Accepted -> no further actions
+    //Canceled -> no further actions
+
+    //step 1: Check if the new status is valid
+    for(var i = 0; Statuses.Length > i; i++)
+    {
+        if (Statuses[i] == inputStatus.NewStatus)
+        {
+            Console.WriteLine("Current Status index: " + i);
+            //check if the new status is legal
+            switch (existingPpackage.CurrentStatus[0])
+            {
+                case "Created":
+                    if (i == 0 || i == 2 || i == 3 || i == 4) return Results.BadRequest("Invalid status change from Created");
+                    break;
+                case "Sent":
+                    if (i == 0 || i == 1 || i == 4) return Results.BadRequest("Invalid status change from Sent");
+                    break;
+                case "Returned":
+                    if (i == 0 || i == 2 || i == 3 || i == 4) return Results.BadRequest("Invalid status change from Returned");
+                    break;
+                case "Accepted":
+                    return Results.BadRequest("No further actions allowed for Accepted or Canceled status");
+                case "Canceled":
+                    return Results.BadRequest("No further actions allowed for Accepted or Canceled status");
+            }
+            break;
+        }
+    }
+    //step 2: Prepeare the new current status
+    var prepedStatus = new string[] { inputStatus.NewStatus, DateTime.Now.ToString() };
+    existingPpackage.CurrentStatus = prepedStatus;
+    //step 3: Prepare the new status history
+    var prepedHistory = existingPpackage.StatusHistory
+        .Concat(new[] { inputStatus.NewStatus, DateTime.Now.ToString() })
+        .ToArray();
+    existingPpackage.StatusHistory = prepedHistory;
 
     await db.SaveChangesAsync();
 
-    return Results.NoContent();
+    return Results.Ok(existingPpackage);
 });
 
 //app.MapDelete("/package/{id}", async (int id, PackageDB db) =>
