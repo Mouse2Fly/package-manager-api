@@ -10,7 +10,10 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         builder => 
         {
-            builder.WithOrigins("http://localhost:5173");
+            builder.WithOrigins("http://localhost:5173")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowAnyOrigin();
         });
 });
 
@@ -45,6 +48,16 @@ app.MapPost("/package", async (PackagePartial packageData, PackageDB db) =>
 {
     bool confirmed = false;
     int trackingNumber = 0;
+
+    if (string.IsNullOrWhiteSpace(packageData.SenderAdress) ||
+        string.IsNullOrWhiteSpace(packageData.SenderName) ||
+        string.IsNullOrWhiteSpace(packageData.SenderPhone) ||
+        string.IsNullOrWhiteSpace(packageData.RecipientAdress) ||
+        string.IsNullOrWhiteSpace(packageData.RecipientName) ||
+        string.IsNullOrWhiteSpace(packageData.RecipientPhone))
+    {
+        return Results.BadRequest("All fields must be filled.");
+    }
 
     while (!confirmed)
     {
@@ -100,13 +113,13 @@ app.MapPut("/package/status/{id}", async (int id, PackageStatus inputStatus, Pac
             switch (existingPpackage.CurrentStatus[0])
             {
                 case "Created":
-                    if (i == 0 || i == 2 || i == 3 || i == 4) return Results.BadRequest("Invalid status change from Created");
+                    if (i == 0 || i == 2 || i == 3) return Results.BadRequest("Invalid status change from Created");
                     break;
                 case "Sent":
-                    if (i == 0 || i == 1 || i == 4) return Results.BadRequest("Invalid status change from Sent");
+                    if (i == 0 || i == 1) return Results.BadRequest("Invalid status change from Sent");
                     break;
                 case "Returned":
-                    if (i == 0 || i == 2 || i == 3 || i == 4) return Results.BadRequest("Invalid status change from Returned");
+                    if (i == 0 || i == 2 || i == 3) return Results.BadRequest("Invalid status change from Returned");
                     break;
                 case "Accepted":
                     return Results.BadRequest("No further actions allowed for Accepted or Canceled status");

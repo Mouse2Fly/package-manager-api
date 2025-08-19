@@ -69,7 +69,7 @@ GET http://localhost:5009/package
 
 ###
 
-@ids=756551
+@ids=483207
 PUT http://localhost:5009/package/status/{{ids}}
 Content-Type: application/json
 	{
