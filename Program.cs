@@ -32,12 +32,6 @@ catch (Exception ex)
     return;
 }
 
-//app.MapGet("/package", async (PackageDB db) =>
-//    await db.Packages.ToListAsync());
-
-//app.MapGet("/todoitems/complete", async (PackageDB db) =>
-//    await db.Todos.Where(t => t.IsComplete).ToListAsync());
-
 app.MapGet("/package/{id}", async (int id, PackageDB db) =>
     await db.Packages.FindAsync(id)
         is Package packageBox
@@ -142,18 +136,6 @@ app.MapPut("/package/status/{id}", async (int id, PackageStatus inputStatus, Pac
 
     return Results.Ok(existingPpackage);
 });
-
-//app.MapDelete("/package/{id}", async (int id, PackageDB db) =>
-//{
-//    if (await db.Todos.FindAsync(id) is PackageTest todo)
-//    {
-//        db.Todos.Remove(todo);
-//        await db.SaveChangesAsync();
-//        return Results.NoContent();
-//    }
-
-//    return Results.NotFound();
-//});
 
 void LogException(Exception error)
 {
