@@ -12,55 +12,7 @@ Content-Type: application/json
   }
 ###
 
-POST {{apiHostAddress}}/package
-Content-Type: application/json
-  {
-    "SenderAdress": "Jonavos g. 7, Kaunas",
-	  "SenderName": "John Doe",
-	  "SenderPhone": "+3709999911",
-	  "RecipientAdress": "Jonavos g. 7, Kaunas",
-	  "RecipientName": "Jane Doe",
-	  "RecipientPhone": "+3709999921"
-  }
-###
-
-POST {{apiHostAddress}}/package
-Content-Type: application/json
-  {
-    "SenderAdress": "Jonavos g. 7, Kaunas",
-	  "SenderName": "John Doe",
-	  "SenderPhone": "+3709999912",
-	  "RecipientAdress": "Jonavos g. 7, Kaunas",
-	  "RecipientName": "Jane Doe",
-	  "RecipientPhone": "+3709999922"
-  }
-###
-
-POST {{apiHostAddress}}/package
-Content-Type: application/json
-  {
-    "SenderAdress": "Jonavos g. 7, Kaunas",
-	  "SenderName": "John Doe",
-	  "SenderPhone": "+3709999913",
-	  "RecipientAdress": "Jonavos g. 7, Kaunas",
-	  "RecipientName": "Jane Doe",
-	  "RecipientPhone": "+37099999243"
-  }
-###
-
-POST {{apiHostAddress}}/package
-Content-Type: application/json
-  {
-    "SenderAdress": "Jonavos g. 7, Kaunas",
-	  "SenderName": "John Doe",
-	  "SenderPhone": "+3709999914",
-	  "RecipientAdress": "Jonavos g. 7, Kaunas",
-	  "RecipientName": "Jane Doe",
-	  "RecipientPhone": "+3709999924"
-  }
-###
-
-@id=1234
+@id=377652
 GET http://localhost:5009/package/{{id}}
 
 ###
@@ -69,10 +21,10 @@ GET http://localhost:5009/package
 
 ###
 
-@ids=483207
+@ids=439702
 PUT http://localhost:5009/package/status/{{ids}}
 Content-Type: application/json
 	{
-		"NewStatus": "Sent"
+		"NewStatus": "Accepted"
 	}
 ###

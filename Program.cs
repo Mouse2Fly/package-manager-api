@@ -78,9 +78,9 @@ app.MapPost("/package", async (PackagePartial packageData, PackageDB db) =>
         RecipientAdress = packageData.RecipientAdress,
         RecipientName = packageData.RecipientName,
         RecipientPhone = packageData.RecipientPhone,
-        CurrentStatus = new[] { "Created", DateTime.Now.ToString() },
+        CurrentStatus = new[] { "Created", DateTime.Now.ToString("o") },
         CreationDate = DateTime.Now,
-        StatusHistory = new[] { "Created", DateTime.Now.ToString() }
+        StatusHistory = new[] { "Created", DateTime.Now.ToString("o") }
     };
 
     db.Packages.Add(packageBox);
@@ -130,11 +130,11 @@ app.MapPut("/package/status/{id}", async (int id, PackageStatus inputStatus, Pac
         }
     }
     //step 2: Prepeare the new current status
-    var prepedStatus = new string[] { inputStatus.NewStatus, DateTime.Now.ToString() };
+    var prepedStatus = new string[] { inputStatus.NewStatus, DateTime.Now.ToString("o") };
     existingPpackage.CurrentStatus = prepedStatus;
     //step 3: Prepare the new status history
     var prepedHistory = existingPpackage.StatusHistory
-        .Concat(new[] { inputStatus.NewStatus, DateTime.Now.ToString() })
+        .Concat(new[] { inputStatus.NewStatus, DateTime.Now.ToString("o") })
         .ToArray();
     existingPpackage.StatusHistory = prepedHistory;
 
